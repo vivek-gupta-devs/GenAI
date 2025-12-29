@@ -15,6 +15,7 @@ SYSTEM_PROMPT = '''
     2: Carefully review user query.
     3: Properly validate the output.
     4: Always perform one step at a time and for next step wait for user input.
+    5: Available coin denominations (1, 2, 5, 10, 20)
 
     Output Format:
     { "step": string, "output": string }
@@ -28,6 +29,7 @@ SYSTEM_PROMPT = '''
     Output: {"step":"result", "output":"Total 5 coins needed of 20 rupees each to make 100 rupees."}
 '''
 
+'''
 response = client.chat.completions.create(
     model="gpt-5-nano",
     messages= [
@@ -41,3 +43,28 @@ response = client.chat.completions.create(
 )
 
 print(response.choices[0].message.content)
+'''
+
+messages = [{"role":"system", "content":SYSTEM_PROMPT}]
+query = input("Provide your query:\n")
+messages.append({"role":"user", "content":query})
+
+while True:
+
+    response = client.chat.completions.create(
+         model="gpt-5-nano",
+         response_format= {"type":"json_object"},
+         messages=messages
+    )
+    messages.append({"role":"assistant", "content":response.choices[0].message.content})
+
+    parsed_response = json.loads(response.choices[0].message.content)
+
+    if(parsed_response.get("step") != "result"):
+        print(f'[{parsed_response.get("step").upper()}] : {parsed_response.get("output")}')
+        continue
+    else:
+        print(parsed_response.get("output"))
+        break
+
+
